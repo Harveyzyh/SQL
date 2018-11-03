@@ -1,0 +1,76 @@
+--消息平台研究
+
+
+
+--消息平台数据表
+
+--ADMTC未发送的
+--ADMTD发送人的
+--ADMTE接收人的
+--DMS 文件消息索引  索引目录（服务器C盘doclibrary）
+
+
+--003 收件人信息
+--006 主题
+--007 内容（右下角小窗口显示，部分内容）
+--008 内容的详细
+--016 
+--017 附件信息，位置，对应DMS表
+
+
+USE DSCSYS
+
+--待发送列表
+SELECT *
+--DELETE
+FROM DSCSYS..ADMTC
+WHERE CREATOR = '000803'
+
+ORDER BY CREATE_DATE
+
+--接受人列表
+SELECT *
+--DELETE
+FROM DSCSYS..ADMTE
+WHERE 1=1
+--AND TE001 = '20180901000100'
+AND TE002 = '000803'
+ORDER BY TE001
+
+--发送人列表
+SELECT *
+--DELETE
+FROM DSCSYS..ADMTD
+WHERE 1=1
+--AND TE001 = '20180901000100'
+AND TD002 = '001114'
+ORDER BY TD001
+
+
+/*
+INSERT INTO ADMTC VALUES('COMFORT', '000803', '082','20180905065604835',NULL,NULL,'0','20180905000001','000803','<?xml version="1.0" encoding="GB2312"?><Root><R1 ID="000946" Name="王小梅" Type="1" Msg="YNN"/></Root>','20180803074727850','N',
+						'8月系数以这份为准','','全部内容','0','','',NULL,'0','0','0',
+						'<?xml version="1.0" encoding="GB2312"?><Root><Dispatching Enable="False"/></Root>',
+						'<?xml version="1.0" encoding="GB2312"?><Attachments/>',
+						NULL,NULL,NULL,NULL,NULL,NULL,'0','0','0','0','0','0',NULL,NULL,NULL,NULL,NULL,NULL,'0','0','0','0','0','0')
+*/
+
+--后台消息队列表
+SELECT *FROM DSCSYS..DSCTK 
+WHERE 1=1
+AND CONVERT(VARCHAR(12), TK004, 112) > '20180601'
+AND TK026 = '000803'
+ORDER BY TK004
+
+
+--工作队列
+SELECT * 
+--DELETE
+--UPDATE DSCSYS..JOBQUEUE SET STATUS = 'D'
+FROM DSCSYS..JOBQUEUE
+WHERE 1=1 
+--AND JOBID = '20180907000015'
+--AND USERID = '001091'
+AND SUBSTRING(JOBID,1 , 8) = '20180913'
+AND STATUS = 'P'
+ORDER BY JOBID DESC
