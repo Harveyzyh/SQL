@@ -24,24 +24,24 @@ inner join tf_scd as scdd on scdd.scd_no = scdt.scdh
 inner join material as ma_wl on ma_wl.wlno = scdd.wlno
 left join (
 	select tf_ntl.wlno, tf_ntl.indh as scdh, sum(osl) as sl from tf_ntl
-	inner join mf_ntl on mf_ntl.crkdh = tf_ntl.crkdh and mf_ntl.shbz = 1 and tf_ntl.crklx = 'scnl'
+	inner join mf_ntl on mf_ntl.crkdh = tf_ntl.crkdh and mf_ntl.shbz = 1 and tf_ntl.crklx like '%nl'
 	group by tf_ntl.indh, tf_ntl.wlno 
 ) as scnl on scnl.scdh = scdt.scdh and scnl.wlno = scdd.wlno
 left join (
 	select tf_ntl.wlno, tf_ntl.indh as scdh, sum(sl) as sl from tf_ntl
-	inner join mf_ntl on mf_ntl.crkdh = tf_ntl.crkdh and mf_ntl.shbz = 1 and tf_ntl.crklx = 'sctl'
+	inner join mf_ntl on mf_ntl.crkdh = tf_ntl.crkdh and mf_ntl.shbz = 1 and tf_ntl.crklx like '%tl'
 	group by tf_ntl.indh, tf_ntl.wlno 
 ) as sctl on sctl.scdh = scdt.scdh and sctl.wlno = scdd.wlno
 left join (
 	select tf_ntl.wlno, tf_ntl.indh as scdh, sum(osl) as sl from tf_ntl
-	inner join mf_ntl on mf_ntl.crkdh = tf_ntl.crkdh and mf_ntl.shbz = 1 and tf_ntl.crklx = 'scbl'
+	inner join mf_ntl on mf_ntl.crkdh = tf_ntl.crkdh and mf_ntl.shbz = 1 and tf_ntl.crklx like '%bl'
 	group by tf_ntl.indh, tf_ntl.wlno 
-) as scbl on sctl.scdh = scdt.scdh and sctl.wlno = scdd.wlno
+) as scbl on scbl.scdh = scdt.scdh and scbl.wlno = scdd.wlno
 
 where 1=1
 -- and ma.wllx = '成品'
 -- and ma.name = '滑轮'
--- and scdt.scdh like 'SC-1905092-1'
+-- and scdt.scdh like 'WW-1904001-2'
 -- and scdt.sl = (case when scrk.sl is null then 0 else scrk.sl end) - (case when sctk.sl is null then 0 else sctk.sl end)
 -- and convert(varchar(20), scdt.scjq, 112) < '20190501'
 -- and scdt.csname = '注塑车间'

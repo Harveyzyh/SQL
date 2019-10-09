@@ -5,11 +5,13 @@ from department
 where dept_no = 7
 and dept_id = 57
 
-
+EXPLAIN
 select* from flow_run LIMIT 100
 
+
 -- 查询所有流程明细，带最后流程创建日期
-set @rownum=0;
+set @rownum=0; -- 设定序号开始
+-- EXPLAIN  -- 查看能否优化
 SELECT @rownum:=@rownum+1 as 序号, -- flow_type.FLOW_ID 流程ID, 
 flow_sort.TITLE 流程类别, flow_type.FLOW_NAME 流程名称, flow_form_type.FORM_NAME 流程表单, 
 -- (case flow_type.IS_USING when '1' then 'Y' when '0' then 'N' end) 启用, 

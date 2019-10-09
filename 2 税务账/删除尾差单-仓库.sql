@@ -1,0 +1,13 @@
+
+
+-- 税务账套
+
+
+-- 调整单别单号即可
+SELECT * 
+-- DELETE
+FROM  INVTK 
+WHERE 1=1
+AND TK001 = '1703' 
+AND TK002 = '19070003' 
+AND TK017 = 'LY050'
