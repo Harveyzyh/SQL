@@ -39,6 +39,13 @@ AND TA007 <> TB025
 -- AND SUBSTRING(PURTA.CREATE_DATE, 1, 6) >= '201902'
 ORDER BY TA001, TA002
 
+-- 进货单作废
+SELECT * 
+-- UPDATE PURTH SET TH030 = TG013
+FROM PURTG
+INNER JOIN PURTH ON TG001 = TH001 AND TG002 = TH002 
+WHERE TG013 = 'V' AND TH030 != TG013
+
 -- ====================================
 -- 破核单据
 -- 当查询不为空，在ERP的对应单据中进行撤审重新审核
