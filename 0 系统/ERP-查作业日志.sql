@@ -1,4 +1,4 @@
---查作业日志
+-- 查作业日志
 
 /* TB001 作业类型 1.建档 2.审核 3.counter
  * TB002 操作类型 0.修改 1.新增 2.删除 A.审核 B.取消审核 3.执行SQL
@@ -38,12 +38,12 @@ WHERE 1=1
 
 ---- 查配置方案修改记录
 -- AND TB002 = '0'
-AND TB003 = 'COPMI14'
+-- AND TB003 = 'COPMI14'
 -- AND TB007 = '601030872'
 -- AND TB005 LIKE '%[10680101]%'
 -- AND TB007 LIKE '10680101-TEST-ZYH%'
 -- AND TB007 NOT LIKE '10460406-保友 TW黑A黑 LY340塑胶脚.%'
-AND TB007 LIKE '10570328-SEK KMD-33橙 KD%'
+-- AND TB007 LIKE '10630103-保友 BM粉红  标配%'
 
 
 ---- 工单修改记录
@@ -73,6 +73,10 @@ AND TB007 LIKE '10570328-SEK KMD-33橙 KD%'
 ---- 领料单
 -- AND TB003 = 'MOCMI03'
 -- AND TB007 LIKE '5406-2019070378%'
+
+
+---- 商品条码
+AND TB003 = 'INVI13'
 
 
 ORDER BY TB006
