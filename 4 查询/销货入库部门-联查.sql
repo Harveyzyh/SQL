@@ -3,8 +3,8 @@ declare @StartDate varchar(20)
 declare @EndDate varchar(20)
 
 /*销货单的单据起始与结束日期*/
-set @StartDate = '20191001'
-set @EndDate = '20191031'
+set @StartDate = '20191101'
+set @EndDate = '20191131'
 
 SELECT DISTINCT A1 AS 销货单号, A2 AS 客户简称, 
 A4 AS 品号, A5 AS 品名, A6 AS 规格, B2 AS 仓库名称, 
@@ -25,7 +25,7 @@ INNER JOIN INVMB ON INVMB.MB001 = COPTH.TH004
 WHERE 1=1 
 AND COPTG.TG003 BETWEEN @StartDate AND @EndDate 
 AND TG023 = 'Y' 
-AND COPTH.TH004 LIKE '1%') AS A 
+AND (COPTH.TH004 LIKE '1%' OR COPTH.TH004 LIKE '2%')) AS A 
 LEFT JOIN 
 (SELECT DISTINCT RTRIM(COPTH.TH001) + '-' + RTRIM(COPTH.TH002) + '-' + RTRIM(COPTH.TH003) AS B1, 
 RTRIM(CMSMC.MC002) AS B2, RTRIM(CMSME.ME002) AS B3 
