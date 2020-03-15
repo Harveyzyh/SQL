@@ -1,41 +1,3 @@
-
--- 名称：领料单审核成功时，检查单身中工单是否完成领料，若是，则把工单发送至文员账号
--- ==========================使能触发器==========================
-DISABLE TRIGGER [dbo].[T_MOCTC2Y] ON [dbo].[MOCTC]
-
--- ==========================触发器部分==========================
-ALTER TRIGGER T_MOCTC2Y
-ON MOCTC
-WITH EXECUTE AS CALLER
-AFTER UPDATE
-AS
---=====================================
--- Author:		Harvey Z
--- Create date: 2019/8/8 14:00:00
--- Description: 当审核码变更为Y时，执行存储过程
---=====================================
-IF UPDATE(TC009)
-BEGIN
-	DECLARE @TC001C VARCHAR(20), @TC002C VARCHAR(20), @TC009 VARCHAR(10)  
-	SELECT @TC001C = RTRIM(TC001), @TC002C = RTRIM(TC002), @TC009 = RTRIM(TC009) FROM INSERTED
-	IF(@TC009='Y' AND @TC001C LIKE '54%')
-	BEGIN
-		IF EXISTS (SELECT * FROM sysobjects WHERE name = 'P_MOCTC2Y2MSG' ) -- 判断存储过程是否存在，避免不存在报错
-		BEGIN 
-			EXEC P_MOCTC2Y2MSG @TC001=@TC001C, @TC002=@TC002C
-		END
-	END
-END
-
-
--- ==========================存储过程部分==========================
-USE [COMFORT]
-GO
-/****** Object:  StoredProcedure [dbo].[P_MOCTC2Y2MSG]    Script Date: 2019/8/8 13:50:07 ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
 -- =============================================
 -- Author:		Harvey Z
 -- Create date: 2019/8/8 14:00:00
@@ -176,14 +138,14 @@ BEGIN
 					UNION 
 					SELECT TC001 AS T001 FROM DSCSYS.dbo.ADMTC WHERE SUBSTRING(TC001, 1, 8) = @YMD
 					)
-				BEGIN
+				BEGIN 
 					SELECT @XH = MAX(A.XH) FROM (
 					SELECT CONVERT(INT, SUBSTRING(MAX(TD001), 9, 6)) AS XH FROM DSCSYS.dbo.ADMTD WHERE SUBSTRING(TD001, 1, 8) = @YMD
 					UNION 
 					SELECT CONVERT(INT, SUBSTRING(MAX(TC001), 9, 6)) AS XH FROM DSCSYS.dbo.ADMTC WHERE SUBSTRING(TC001, 1, 8) = @YMD
 					)AS A
 				END 
-				ELSE
+				ELSE 
 				BEGIN 
 					SET @XH = 0
 				END
