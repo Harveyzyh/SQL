@@ -21,3 +21,13 @@ select *
 from department
 where 1=1
 and DEPT_PARENT = 22
+
+
+-- 修改流程办理部门
+SELECT * FROM `eoffice`.`flow_process`  
+-- update `flow_process` set `PRCS_DEPT` = CONCAT(`PRCS_DEPT`, '66,67,')
+WHERE `PRCS_DEPT` LIKE '%39,%' 
+and (`PRCS_DEPT` not like '%66,%' or `PRCS_DEPT` not like '%67,%')
+
+
+LIMIT 0,1000

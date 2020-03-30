@@ -12,7 +12,7 @@ CONVERT(VARCHAR(20), (CONVERT(FLOAT, TB004) - CONVERT(FLOAT, TB005))) AS 工单�
 RTRIM(TC019) 来源单别, RTRIM(TC020) 来源单号, RTRIM(TC001) AS 领退料单别, RTRIM(TC002) AS 领退料单号, RTRIM(TC009) AS 领退料单头审核码, RTRIM(TE019) AS 领退料单身审核码, 
 TE003 AS 领退料单序号, (CASE SUBSTRING(TC001,1,2) WHEN '54' THEN '领料' WHEN '56' THEN '退料' ELSE TC001 END) 领退料, TE005 AS 领退料数量, TE027 AS 领退料库存数量, 
 TE008 AS 领料单仓位, TE010 AS 领料单批号, 
-LA011 AS 库存交易数量, (CASE WHEN LA005 = '-1' THEN '出库' WHEN LA005 = '+1' THEN '入库' END) AS 出入库, LA009 AS 交易明细仓位, LA016 AS 交易明细批号 
+LA004 交易日期, LA011 AS 库存交易数量, (CASE WHEN LA005 = '-1' THEN '出库' WHEN LA005 = '+1' THEN '入库' END) AS 出入库, LA009 AS 交易明细仓位, LA016 AS 交易明细批号 
 
 -- UPDATE MOCTE SET TE019 = 'Y' -- 领料单身审核码
 -- UPDATE MOCTE SET TE005 = LA011, TE027 = LA011, TE008 = LA009, TE010 = LA016 -- 数量，仓库，批号
@@ -29,7 +29,7 @@ INNER JOIN INVMB ON TB003 = MB001
 WHERE 1=1
 AND TA013 != 'V' AND TA011 != 'y' --AND TC009 != 'V'
 -- AND TC009 = 'Y' AND TE019 = 'N'
-AND TA002 = '19122750' -- 工单号
+AND TA002 = '19121656' -- 工单号
 -- AND CONVERT(FLOAT, TB004) - CONVERT(FLOAT, TB005) < 0  -- 工单需领数量
 -- AND TE005 != LA011 -- 领料数量与库存交易明细不一致
 -- AND TE010 != LA016 -- 领料批号与库存交易批号不一致
