@@ -1,10 +1,10 @@
 
-declare @StartDate varchar(20) 
-declare @EndDate varchar(20)
+declare @Dates varchar(20), @StartDate varchar(20), @EndDate varchar(20)
 
+set @Dates = '202003'
 /*销货单的单据起始与结束日期*/
-set @StartDate = '20191201'
-set @EndDate = '20191231'
+set @StartDate = @Dates + '01'
+set @EndDate = @Dates + '31'
 
 SELECT DISTINCT A1 AS 销货单号, A2 AS 客户简称, 
 A4 AS 品号, A5 AS 品名, A6 AS 规格, B2 AS 仓库名称, 
