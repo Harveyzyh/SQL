@@ -1,7 +1,7 @@
 
 declare @Dates varchar(20), @StartDate varchar(20), @EndDate varchar(20)
 
-set @Dates = '202003'
+set @Dates = '202004'
 /*销货单的单据起始与结束日期*/
 set @StartDate = @Dates + '01'
 set @EndDate = @Dates + '31'

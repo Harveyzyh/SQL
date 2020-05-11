@@ -3,7 +3,7 @@ DECLARE @NY VARCHAR(20), @NYR VARCHAR(20)
 
 DECLARE @NY1 VARCHAR(20), @NY2 VARCHAR(20)
 
-SET @NY = '202001'  -- 输入当前检查的年月
+SET @NY = '202004'  -- 输入当前检查的年月
 
 SELECT @NYR = @NY + '01'
 

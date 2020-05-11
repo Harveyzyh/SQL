@@ -29,12 +29,12 @@ INNER JOIN INVMB ON TB003 = MB001
 WHERE 1=1
 AND TA013 != 'V' AND TA011 != 'y' --AND TC009 != 'V'
 -- AND TC009 = 'Y' AND TE019 = 'N'
-AND TA002 = '19121656' -- 工单号
+AND TA002 = '20032925' -- 工单号
 -- AND CONVERT(FLOAT, TB004) - CONVERT(FLOAT, TB005) < 0  -- 工单需领数量
 -- AND TE005 != LA011 -- 领料数量与库存交易明细不一致
 -- AND TE010 != LA016 -- 领料批号与库存交易批号不一致
 -- AND RTRIM(TC001) + '-' + RTRIM(TC002) = '5406-20190378' -- 领退料单号
--- AND TB003 = '3070205004' -- 工单品号
+-- AND TB003 = '3020502015' -- 工单品号
 -- AND TB006 = '0303' -- 工单工艺
 -- AND LA011 IS NOT NULL AND CONVERT(FLOAT, TB004) - CONVERT(FLOAT, TB005) > 0 -- 工单未领用量没发生变化
 -- AND TA011 IN ('2', '3') -- 工单状态
