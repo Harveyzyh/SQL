@@ -29,7 +29,7 @@ INNER JOIN INVMB ON TB003 = MB001
 WHERE 1=1
 AND TA013 != 'V' AND TA011 != 'y' --AND TC009 != 'V'
 -- AND TC009 = 'Y' AND TE019 = 'N'
-AND TA002 = '20032925' -- 工单号
+AND TA002 = '20050648' -- 工单号
 -- AND CONVERT(FLOAT, TB004) - CONVERT(FLOAT, TB005) < 0  -- 工单需领数量
 -- AND TE005 != LA011 -- 领料数量与库存交易明细不一致
 -- AND TE010 != LA016 -- 领料批号与库存交易批号不一致
