@@ -20,7 +20,7 @@ FROM DSCSYS.dbo.ADMMD
 INNER JOIN DSCSYS.dbo.ADMMC ON MD001 = MC001
 WHERE 1=1
 -- AND MD001 LIKE '%INVME%' --表名
-AND MD001 IN ('MOCTE', 'PURTD', '', '', '', '', '', '', '', '', '', '', '')
+AND MD001 IN ('PURTC', 'PURTD', '', '', '', '', '', '', '', '', '', '', '')
 -- AND MD001 LIKE ('%%')
 ORDER BY MD001, MD002
 
