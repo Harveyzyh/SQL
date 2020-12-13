@@ -5,7 +5,7 @@ SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-/*ÊµÏÖ²É¹ºµ¥¼Û²»Îª0µÄÌáÐÑ  ½ö½öÊÊÓÃÓÚ½¨µµ×÷ÒµÂ¼Èë»áÌáÊ¾£¬Åú´Î×÷Òµ½öRollBack*/
+/*å®žçŽ°é‡‡è´­å•ä»·ä¸ä¸º0çš„æé†’  ä»…ä»…é€‚ç”¨äºŽå»ºæ¡£ä½œä¸šå½•å…¥ä¼šæç¤ºï¼Œæ‰¹æ¬¡ä½œä¸šä»…RollBack*/
 CREATE TRIGGER [dbo].[PURTD001] ON [dbo].[PURTD]
 FOR INSERT,UPDATE
 AS 
@@ -14,7 +14,7 @@ SET NOCOUNT ON
   IF EXISTS(SELECT * from inserted as a
 WHERE TD010 = '0') 
      BEGIN 
-       RAISERROR('²É¹ºµ¥¼ÛÎª0,±£´æÊ§°Ü',16,1)
+       RAISERROR('é‡‡è´­å•ä»·ä¸º0,ä¿å­˜å¤±è´¥',16,1)
        ROLLBACK TRAN
      END
 	 SET NOCOUNT OFF

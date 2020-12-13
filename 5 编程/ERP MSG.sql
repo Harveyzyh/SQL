@@ -1,20 +1,11 @@
-
--- ==========================存储过程部分==========================
-USE [COMFORT]
-GO
-/****** Object:  StoredProcedure [dbo].[P_LRPTA2MSG]    Script Date: 2019/8/8 13:50:07 ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
 -- =============================================
 -- Author:		Harvey Z
 -- Create date: 2019/8/8 14:00:00
--- Description:	穿入参数：领料单别，领料单号
+-- Description:	传入参数：领料单别，领料单号
 -- 								处理事项：领料单审核后，判断该领料单内是否有工单已经完全领料，若存在，通过ERP邮件发送至生产文员
 -- =============================================
-ALTER PROCEDURE [dbo].[P_LRPTA2MSG]
--- CREATE PROCEDURE [dbo].[P_LRPTA2MSG] 
+ALTER PROCEDURE [dbo].[P_MOCTC2Y2MSG]
+-- CREATE PROCEDURE [dbo].[P_MOCTC2Y2MSG] 
 -- 创建领料单别单号变量
 @TC001 VARCHAR(30) = NULL, @TC002 VARCHAR(30) = NULL
 
@@ -23,22 +14,30 @@ BEGIN
 	-- SET NOCOUNT ON added to prevent extra result sets from
 	-- interfering with SELECT statements.
 	SET NOCOUNT ON;
-	--====================================================
-	-- 整体逻辑架构：不想写了，自己猜吧
+		--====================================================
+	-- 整体逻辑架构：
+	-- 	1.根据传入领料单单号，单号，获取单身中已完成领料的工单单别单号
+	-- 	2.如 1 不为空，获取收件人信息， 获取年月日信息
+	-- 	3.对 1 结果游标循环：
+	-- 		1.根据工单单别单号获取工单成品信息，生产数量
+	-- 		2.获取最新的ERP邮件流水号
+	-- 		3.邮件内容写入DSCSYS..ADMTC
+	-- 		
+	-- 	结果：对领料单里的每一个完成领料的工单都单独发送一份ERP邮件
+	-- 	
+	-- 	待调整：根据领料单的录单部门，对应地发送到对应部门的文员账号
 	--====================================================
 
-	-- LRPTA创建人所在组
-	DECLARE @USR_GROUP VARCHAR(20)
+	-- 创建领料单信息
+	DECLARE @LLDPT VARCHAR(20)
 
 	-- 创建邮件ID号获取变量
 	DECLARE @MSGID VARCHAR(14), @YMD VARCHAR(8)
 	DECLARE @XH INT
 
-	-- 创建订单信息变量
-	DECLARE @TA047 VARCHAR(20), @TA048 VARCHAR(20), @TA049 VARCHAR(20), @TA037 VARCHAR(20), @MB002 VARCHAR(50), @MB003 VARCHAR(100), @TA044 VARCHAR(90)
-	
-	-- 创建邮件内容信息变量
-	DECLARE @TITLE VARCHAR(100), @MSG_INF VARCHAR(8000)
+	-- 创建工单信息变量
+	DECLARE @TA001 VARCHAR(4), @TA002 VARCHAR(20), @DDNO VARCHAR(20), @GDSL VARCHAR(20), @CPNO VARCHAR(20), @CPNAME VARCHAR(50), @CPGG VARCHAR(20)
+	DECLARE @TITLE VARCHAR(100), @MSG_INF VARCHAR(3000)
 
 	-- 创建收件人信息变量
 	DECLARE @ERPID_ROW INT
@@ -51,25 +50,36 @@ BEGIN
 	
 	-- 初始化邮件内容信息
 	SET @MSG_INF = ''
-	
-	-- 初始化采购部的组别
-	SET @USR_GROUP = '061'
 
 	-- ==========================以下为正式逻辑==========================
 	IF EXISTS (SELECT * FROM CONFIG.dbo.sysobjects WHERE NAME = 'ERPMSG') -- 判断额外建的接收人表存在与否，避免不存在报错
 	BEGIN 
 		
-		IF EXISTS (SELECT * FROM LRPTA WHERE UDF07 = 'N' AND  UDF07 IS NOT NULL AND USR_GROUP = @USR_GROUP)
+		IF EXISTS (SELECT * FROM COMFORT.dbo.MOCTC
+		INNER JOIN COMFORT.dbo.MOCTE ON TC001 = TE001 AND TC002 = TE002
+		WHERE 1=1
+		AND TC001 = @TC001 AND TC002 = @TC002
+		AND EXISTS (
+		SELECT 1 FROM COMFORT.dbo.MOCTA WHERE TA001 = TE011 AND TA002 = TE012)
+		AND NOT EXISTS (
+		SELECT 1 FROM  COMFORT.dbo.MOCTB
+		WHERE TE011 = TB001 AND TE012 = TB002 AND TB004 > TB005)
+		)
 		BEGIN 
 			
 			-- 获取年月日信息
 			SELECT @YMD = CONVERT(VARCHAR(8), GETDATE(), 112)
 			
+			-- 获取领料单的部门信息
+			SELECT @LLDPT=RTRIM(ME002) FROM COMFORT.dbo.MOCTC
+			LEFT JOIN COMFORT.dbo.CMSME ON ME001 = TC021 
+			WHERE TC001 = @TC001 AND TC002 = @TC002
+			
 			-- 获取收件人信息-游标获取
-			IF EXISTS(SELECT * FROM CONFIG.dbo.ERPMSG)
+			IF EXISTS(SELECT * FROM CONFIG.dbo.ERPMSG WHERE ERPDPT = @LLDPT)
 			BEGIN
 			
-				DECLARE CUR_ERPID CURSOR FOR( SELECT DISTINCT ERPID FROM CONFIG.dbo.ERPMSG)
+				DECLARE CUR_ERPID CURSOR FOR( SELECT [ERPID] FROM CONFIG.dbo.ERPMSG WHERE ERPDPT = @LLDPT)
 				OPEN CUR_ERPID
 				FETCH NEXT FROM CUR_ERPID INTO @ERPID
 				WHILE @@FETCH_STATUS = 0
@@ -82,32 +92,45 @@ BEGIN
 				CLOSE CUR_ERPID
 				DEALLOCATE CUR_ERPID
 				
-				-- 修改UDF07作为FLAG变为临时状态y
-				UPDATE LRPTA SET UDF07 = 'y' WHERE UDF07 = 'N' AND UDF07 IS NOT NULL AND USR_GROUP = @USR_GROUP
-				
 				-- 获取各工单信息-游标获取
-				DECLARE CUR_LRPTA CURSOR 
+				DECLARE CUR_MOCTA CURSOR 
 				FOR(
-					SELECT RTRIM(TA047), RTRIM(TA048), RTRIM(TA049), RTRIM(TA037), RTRIM(MB002), RTRIM(MB003), RTRIM(TA044) FROM LRPTA 
-					INNER JOIN INVMB ON MB001 = TA037
-					WHERE LRPTA.UDF07 = 'y' AND LRPTA.UDF07 IS NOT NULL AND LRPTA.USR_GROUP = @USR_GROUP
+				SELECT DISTINCT TE011, TE012 FROM COMFORT.dbo.MOCTC
+				INNER JOIN COMFORT.dbo.MOCTE ON TC001 = TE001 AND TC002 = TE002
+				WHERE 1=1
+				AND TC001 = @TC001 AND TC002 = @TC002
+				AND EXISTS (
+					SELECT 1 FROM COMFORT.dbo.MOCTA
+					WHERE TA001 = TE011 AND TA002 = TE012)
+				AND NOT EXISTS (
+					SELECT 1 FROM  COMFORT.dbo.MOCTB
+					WHERE TE011 = TB001 AND TE012 = TB002 AND TB004 > TB005)
 				)
 				
-				OPEN CUR_LRPTA
-				FETCH NEXT FROM CUR_LRPTA INTO @TA047, @TA048, @TA049, @TA037, @MB002, @MB003, @TA044
+				OPEN CUR_MOCTA
+				FETCH NEXT FROM CUR_MOCTA INTO @TA001, @TA002
 				WHILE @@FETCH_STATUS = 0
 				BEGIN
 				
+					-- 获取工单信息
+					SELECT @GDSL = CONVERT(VARCHAR(20), CONVERT(FLOAT, TA015)), @CPNO = RTRIM(TA006), @CPNAME = RTRIM(TA034), @DDNO = RTRIM(TA027), @CPGG = RTRIM(TA035) 
+					FROM COMFORT.dbo.MOCTA LEFT JOIN COMFORT.dbo.CMSMD ON MD001 = TA021 WHERE TA001 = @TA001 AND TA002 = @TA002
+					
 					SET @MSG_INF = @MSG_INF + '
-					<A href="dcms://YiFei/COMFORT/COPMI06/query/COPTC.TC001 = ''' + @TA047 + ''' and COPTC.TC002 = ''' + @TA048 + '''">
-					<P>订单 : ' + @TA047 + '-' + @TA048 + '-' + @TA049 + '  品名 : ' + @MB002 + '  规格 : ' + @MB003 + '</P>
+					<P>&nbsp;</P>
+					<A href="dcms://YiFei/COMFORT/MOCMI02/query/MOCTA.TA001 = ''' + @TA001 + ''' and MOCTA.TA002 = ''' + @TA002 + '''">
+					<P>品号 : ' + @CPNO + '  品名 : ' + @CPNAME + '  规格 : ' + @CPGG + '</P>
+					<P>生产单号 : ' + @DDNO + '  生产数量 : ' + @GDSL + '</P>
+					<P>工单单别 : ' + @TA001 + '</P>
+					<P>工单单号 : ' + @TA002 + '</P>
+					<P>生产部门 : ' + @LLDPT + '</P>
 					</A>'
 					
-					FETCH NEXT FROM CUR_LRPTA INTO @TA047, @TA048, @TA049, @TA037, @MB002, @MB003, @TA044
+					FETCH NEXT FROM CUR_MOCTA INTO @TA001, @TA002
 				END
 				
-				CLOSE CUR_LRPTA
-				DEALLOCATE CUR_LRPTA
+				CLOSE CUR_MOCTA
+				DEALLOCATE CUR_MOCTA
 				
 				-- 获取ERP邮件流水号
 				IF EXISTS( 
@@ -130,21 +153,19 @@ BEGIN
 				SET @MSGID = @YMD + RIGHT('000000' + CAST((@XH + 2) AS VARCHAR(6)), 6)
 				
 				-- 写入到待发送邮件表
-				SET @TITLE = '采购生成采购计划通知'
+				SET @TITLE = '工单完成领料通知'
 
 				INSERT INTO DSCSYS.dbo.ADMTC ([COMPANY], [CREATOR], [USR_GROUP], [CREATE_DATE], [MODIFIER], [MODI_DATE], [FLAG], [TC001], [TC002], [TC003], [TC004], [TC005], [TC006], [TC007], 
 				[TC008], [TC009], [TC010], [TC011], [TC012], [TC013], [TC014], [TC015], [TC016], [TC017], [UDF01], [UDF02], [UDF03], [UDF04], [UDF05], [UDF06], [UDF51], [UDF52], 
 				[UDF53], [UDF54], [UDF55], [UDF56], [UDF07], [UDF08], [UDF09], [UDF10], [UDF11], [UDF12], [UDF57], [UDF58], [UDF59], [UDF60], [UDF61], [UDF62]) 
 				VALUES ('COMFORT', 'DS', '', REPLACE(REPLACE(REPLACE(REPLACE(CONVERT(varchar(100), GETDATE(), 25), '-', ''), ' ', ''), ':', ''), '.', ''), NULL, NULL, 0, 
 				@MSGID, 'DS', '<?xml version="1.0" encoding="GB2312"?><Root>' + @ERPID_INF + '</Root>', 
-				REPLACE(REPLACE(REPLACE(REPLACE(CONVERT(varchar(100), GETDATE(), 25), '-', ''), ' ', ''), ':', ''), '.', ''), 'N', @TITLE, @TITLE, 
+				REPLACE(REPLACE(REPLACE(REPLACE(CONVERT(varchar(100), GETDATE(), 25), '-', ''), ' ', ''), ':', ''), '.', ''), 'N', @TITLE, @CPNAME + ' ' + @CPNO, 
 				'<FONT size=2>' + @MSG_INF + '</FONT>', 
 				'0', '', '', NULL, 0.000000, 0.000000, 0.000000, 
 				'<?xml version="1.0" encoding="GB2312"?><Root><Dispatching Enable="False"/></Root>', '<?xml version="1.0" encoding="GB2312"?><Attachments/>', 
 				NULL, NULL, NULL, NULL, NULL, NULL, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, NULL, NULL, NULL, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000)
 					
-				-- 修改FLAG为Y
-				UPDATE LRPTA SET UDF07 = 'Y' WHERE UDF07 = 'y' AND UDF07 IS NOT NULL AND USR_GROUP = @USR_GROUP
 			END
 		END 
 	END

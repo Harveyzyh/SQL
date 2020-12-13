@@ -1,0 +1,7 @@
+select object_name(id) as tablename,reserved----查询各个表大小
+ from sys.sysindexes
+ where indid in (0,1)
+ order by reserved desc
+
+--收缩数据库
+DBCC SHRINKDATABASE
